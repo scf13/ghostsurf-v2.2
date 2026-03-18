@@ -4,74 +4,103 @@
 
 ![Version](https://img.shields.io/badge/version-2.2-cyan)
 ![Platform](https://img.shields.io/badge/platform-Kali%20Linux-purple)
-![License](https://img.shields.io/badge/license-MIT-green)
+![Shell](https://img.shields.io/badge/language-Shell-green)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Stars](https://img.shields.io/github/stars/scf13/ghostsurf-v2.2?style=social)
 
 ---
 
-## Features
+## 📌 What is GhostSurf?
 
-- ✅ System-wide Tor routing (all TCP → Tor automatically)
-- ✅ DNS protection — no DNS leaks
-- ✅ IPv6 fully blocked
-- ✅ UDP blocked outside LAN
-- ✅ Tor UID routing loop prevention
-- ✅ LAN traffic kept local (DHCP/router access intact)
-- ✅ Live Yad GUI with green/red status indicators
-- ✅ 7-point leak verification test
+GhostSurf is a **system-wide Tor transparent proxy** for Kali Linux.
+It automatically routes **all your traffic through Tor** — no manual proxy settings needed for most apps.
+
+Built as a cleaner, more stable alternative to AnonSurf — with a live GUI, auto IP rotation, and 7-point leak verification.
+
+---
+
+## ✨ Features
+
+- ✅ System-wide Tor routing — all TCP automatically goes through Tor
+- ✅ DNS leak protection — all DNS queries routed through Tor
+- ✅ IPv6 fully blocked — no IPv6 leaks
+- ✅ UDP blocked outside LAN — no UDP leaks
+- ✅ LAN traffic kept local — DHCP and router access intact
+- ✅ Tor UID loop prevention — Tor never routes itself
 - ✅ Auto network restore on stop or failure
-- ✅ Modular structure (lib/rules.sh, lib/verify.sh, lib/utils.sh)
+- ✅ 7-point leak verification test
+- ✅ Auto IP rotation — change exit node every X seconds
+- ✅ Persistent rotation via systemd — survives reboots
+- ✅ Live Yad GUI with green/red status indicators
+- ✅ Modular structure — easy to read and modify
 
 ---
 
-## Directory Structure
+## 📁 Directory Structure
 
 ```
 ghostsurf-v2.2/
-├── ghostsurf.sh        ← CLI core (start, stop, restart, rotate, verify)
-├── ghostsurf-gui.sh    ← Yad GUI (AnonSurf-style)
-├── ghostsurf.desktop   ← Applications menu shortcut
-├── install.sh          ← One-shot installer
+├── ghostsurf.sh                 ← CLI core
+├── ghostsurf-gui.sh             ← Yad GUI (AnonSurf-style)
+├── ghostsurf-auto.sh            ← Auto-rotate daemon script
+├── ghostsurf-autorotate.service ← Systemd persistent service
+├── ghostsurf.desktop            ← Applications menu shortcut
+├── install.sh                   ← One-shot installer
 └── lib/
-    ├── utils.sh        ← Shared helpers, status checks, IP fetch
-    ├── rules.sh        ← iptables + DNS rules
-    └── verify.sh       ← 7-point leak test
+    ├── utils.sh                 ← Shared helpers + status checks
+    ├── rules.sh                 ← iptables + DNS rules
+    └── verify.sh                ← 7-point leak test
 ```
 
 ---
 
-## Install
+## ⚙️ Install
+
+### From GitHub (recommended)
 
 ```bash
-git clone https://github.com/scf13/ghostsurf-v2.2
-cd ghostsurf
-chmod +x ghostsurf.sh ghostsurf-gui.sh install.sh lib/*.sh
+git clone https://github.com/scf13/ghostsurf-v2.2.git
+cd ghostsurf-v2.2
+chmod +x ghostsurf.sh ghostsurf-gui.sh ghostsurf-auto.sh install.sh lib/*.sh
 sudo bash install.sh
 ```
 
-The installer will:
-- Fix your network/DNS if broken before installing
-- Install `tor`, `torsocks`, `yad`, `xterm`, and other dependencies
-- Deploy CLI and GUI to `/usr/local/bin/`
+The installer will automatically:
+- Fix your network and DNS if broken before installing
+- Install tor, torsocks, yad, xterm and other dependencies
+- Deploy CLI and GUI to /usr/local/bin/
 - Add a desktop shortcut to your applications menu
 - Enable Tor on system startup
 
----
-
-## CLI Usage
+### Remove / Uninstall
 
 ```bash
-sudo ghostsurf start    # Activate Tor routing
-sudo ghostsurf stop     # Restore normal internet
-sudo ghostsurf restart  # Stop then start cleanly
-sudo ghostsurf status   # Show current state + exit IP
-sudo ghostsurf ip       # Show current Tor exit IP
-sudo ghostsurf rotate   # Request new Tor circuit (new exit IP)
-sudo ghostsurf verify   # Run 7-point leak test
+sudo rm -f /usr/local/bin/ghostsurf
+sudo rm -f /usr/local/bin/ghostsurf-gui
+sudo rm -f /usr/local/bin/ghostsurf-auto.sh
+sudo rm -rf /usr/local/lib/ghostsurf
+sudo rm -f /usr/share/applications/ghostsurf.desktop
+sudo systemctl disable ghostsurf-autorotate 2>/dev/null
+sudo rm -f /etc/systemd/system/ghostsurf-autorotate.service
 ```
 
 ---
 
-## GUI Usage
+## 💻 CLI Usage
+
+```bash
+sudo ghostsurf start     # Activate Tor routing
+sudo ghostsurf stop      # Restore normal internet
+sudo ghostsurf restart   # Stop then start cleanly
+sudo ghostsurf status    # Show current state + exit IP
+sudo ghostsurf ip        # Show current Tor exit IP
+sudo ghostsurf rotate    # Get new Tor exit node once
+sudo ghostsurf verify    # Run 7-point leak test
+```
+
+---
+
+## 🖥️ GUI Usage
 
 ```bash
 sudo ghostsurf-gui
@@ -80,158 +109,21 @@ sudo ghostsurf-gui
 Or find **GhostSurf v2.2** in your applications menu.
 
 The GUI shows:
-- 🟢/🔴 Live status lights for Tor, NAT routing, DNS, IPv6
+- 🟢/🔴 Live status lights — Tor, NAT routing, DNS, IPv6, Auto-Rotate
 - Current Tor exit IP in large green text
 - Session uptime
-- One-click buttons: Start, Stop, Restart, New IP, Verify, Status
+- Buttons — Start, Stop, Restart, New IP, Verify, Status
+- Auto-rotate buttons — 60s, 120s, 300s, Stop
 - Live log panel (last 20 lines)
 - System tray icon
 
 ---
 
-## 🌐 Browser Setup (Important)
-
-GhostSurf routes all TCP traffic through Tor automatically via
-transparent proxy. For **extra security**, also configure your
-browser to use Tor's SOCKS proxy directly:
-
-### Proxy Settings
-
-```
-SOCKS Host : 127.0.0.1
-Port       : 9050
-Type       : SOCKS v5
-```
-
-### Firefox
-
-1. Open **Settings** → Search **"Network Settings"** → Click **Settings...**
-2. Select **Manual proxy configuration**
-3. **SOCKS Host**: `127.0.0.1`
-4. **Port**: `9050`
-5. Select **SOCKS v5**
-6. ✅ Check **Proxy DNS when using SOCKS v5**
-7. Click **OK**
-
-### Chromium / Chrome
-
-```bash
-chromium --proxy-server="socks5://127.0.0.1:9050"
-```
-
-### Any browser via proxychains
-
-```bash
-proxychains firefox
-proxychains chromium
-proxychains curl ifconfig.me
-```
-
-### Verify your browser is using Tor
-
-Visit: **https://check.torproject.org**
-
-You should see:
-> *"Congratulations. This browser is configured to use Tor."*
-
-Or check your IP:
-```bash
-curl --socks5-hostname 127.0.0.1:9050 ifconfig.me
-```
-
----
-
-## Network Recovery
-
-If your internet stops working:
-
-```bash
-# Option 1 — GhostSurf stop (recommended)
-sudo ghostsurf stop
-
-# Option 2 — Manual restore
-sudo iptables -F
-sudo iptables -P OUTPUT ACCEPT
-sudo iptables -t nat -F
-sudo ip6tables -F
-sudo ip6tables -P OUTPUT ACCEPT
-echo "nameserver 1.1.1.1" | sudo tee /etc/resolv.conf
-sudo systemctl restart NetworkManager
-```
-
----
-
-## How It Works
-
-```
-Your Apps
-    ↓
-iptables NAT (OUTPUT chain)
-    ↓
-Tor TransPort 9040
-    ↓
-Tor Network (encrypted, multi-hop)
-    ↓
-Internet
-```
-
-**DNS flow:**
-```
-App DNS query (port 53)
-    ↓
-iptables NAT redirect
-    ↓
-Tor DNSPort 5353
-    ↓
-Resolved anonymously through Tor
-```
-
----
-
-## ⚠️ OPSEC Warnings
-
-- ❌ Do **not** log into personal accounts (Google, email, social media) — breaks anonymity regardless of routing
-- ❌ Do **not** open downloaded files while GhostSurf is active (PDFs, Office docs can phone home)
-- ❌ Do **not** use your real name or personal details in anonymous sessions
-- ✅ Use **Tor Browser** for maximum fingerprint protection
-- ✅ Run `sudo ghostsurf verify` before sensitive work
-- ✅ Run `sudo ghostsurf stop` when done
-
----
-
-## Dependencies
-
-| Package | Purpose |
-|---|---|
-| `tor` | Tor service |
-| `torsocks` | Route specific apps through Tor |
-| `iptables` | Transparent proxy rules |
-| `yad` | GUI framework |
-| `xterm` | Terminal for GUI buttons |
-| `curl` | IP check |
-| `dnsutils` | DNS test tools |
-| `netcat-traditional` | Tor control port |
-
-Install manually if needed:
-```bash
-sudo apt install -y tor torsocks yad xterm curl dnsutils netcat-traditional
-```
-
----
-
-## License
-
-For authorized security research and privacy protection only.
-MIT License — use responsibly.
-
-
----
-
-## Auto-Rotate IP
+## 🔄 Auto-Rotate IP
 
 Automatically change your Tor exit IP at a set interval.
 
-### Option 1 — Temporary (stops on reboot)
+### Temporary (stops on reboot)
 
 ```bash
 sudo ghostsurf autorotate 120    # rotate every 2 minutes
@@ -242,7 +134,7 @@ sudo ghostsurf autorotate status # check if running
 sudo ghostsurf autorotate log    # view rotation log
 ```
 
-### Option 2 — Persistent (survives reboots)
+### Persistent (survives reboots)
 
 ```bash
 # Install as systemd service — rotates every 10 minutes forever
@@ -263,21 +155,149 @@ sudo ghostsurf autorotate disable
 [14:26:01]  #3    46.182.19.48        → 178.17.170.23
 ```
 
-### Rules
-
-| Setting | Value |
-|---|---|
-| Minimum interval | 10 seconds |
-| Recommended interval | 60 - 600 seconds |
-| Log file | `/var/log/ghostsurf-autorotate.log` |
-| Only rotates when | Tor is active |
-
-> ⚠️ Very frequent rotation (under 30s) may cause connection failures.
-> Recommended: 120-300 seconds for stable browsing.
+> Minimum interval: 10 seconds. Recommended: 60-300 seconds.
 
 ---
 
-## License
+## 🌐 Browser Setup (Important)
 
-For authorized security research and privacy protection only.
-MIT License — use responsibly.
+GhostSurf routes all TCP through Tor automatically.
+For extra security, also set your browser proxy manually:
+
+```
+SOCKS Host : 127.0.0.1
+Port       : 9050
+Type       : SOCKS v5
+```
+
+### Firefox
+
+1. Open Settings → Network Settings → Settings...
+2. Select Manual proxy configuration
+3. SOCKS Host: 127.0.0.1 — Port: 9050
+4. Select SOCKS v5
+5. Check Proxy DNS when using SOCKS v5
+6. Click OK
+
+### Chromium / Chrome
+
+```bash
+chromium --proxy-server="socks5://127.0.0.1:9050"
+```
+
+### Any app via proxychains
+
+```bash
+proxychains firefox
+proxychains nmap -sT target.com
+proxychains curl ifconfig.me
+```
+
+### Verify it is working
+
+Visit: https://check.torproject.org
+
+Or run:
+```bash
+curl --socks5-hostname 127.0.0.1:9050 ifconfig.me
+```
+
+---
+
+## 🔧 Network Recovery
+
+If your internet stops working:
+
+```bash
+# Option 1 — GhostSurf stop
+sudo ghostsurf stop
+
+# Option 2 — Manual restore
+sudo iptables -F
+sudo iptables -P OUTPUT ACCEPT
+sudo iptables -t nat -F
+sudo ip6tables -F
+sudo ip6tables -P OUTPUT ACCEPT
+echo "nameserver 1.1.1.1" | sudo tee /etc/resolv.conf
+sudo systemctl restart NetworkManager
+```
+
+---
+
+## 🧱 How It Works
+
+```
+Your Apps
+    ↓
+iptables NAT (OUTPUT chain)
+    ↓
+Tor TransPort 9040
+    ↓
+Tor Network (encrypted multi-hop)
+    ↓
+Internet
+```
+
+DNS flow:
+```
+App DNS query → iptables redirect → Tor DNSPort 5353 → resolved anonymously
+```
+
+---
+
+## ⚠️ OPSEC Warnings
+
+- Do NOT log into personal accounts — breaks anonymity
+- Do NOT open downloaded files while active — PDFs can phone home
+- Do NOT use your real name or personal details
+- Use Tor Browser for maximum fingerprint protection
+- Run sudo ghostsurf verify before sensitive work
+- Run sudo ghostsurf stop when done
+
+---
+
+## 📦 Dependencies
+
+| Package | Purpose |
+|---|---|
+| tor | Tor service |
+| torsocks | Route specific apps through Tor |
+| iptables | Transparent proxy rules |
+| yad | GUI framework |
+| xterm | Terminal for GUI buttons |
+| curl | IP check |
+| dnsutils | DNS test tools |
+| netcat-traditional | Tor control port communication |
+
+Install manually if needed:
+```bash
+sudo apt install -y tor torsocks yad xterm curl dnsutils netcat-traditional
+```
+
+---
+
+## 🤝 Contributing
+
+Pull requests are welcome!
+
+1. Fork the repo
+2. Create a branch: `git checkout -b feature/your-feature`
+3. Commit: `git commit -m "Add your feature"`
+4. Push: `git push origin feature/your-feature`
+5. Open a Pull Request
+
+Report bugs by opening an Issue on GitHub.
+
+---
+
+## 📜 License
+
+MIT License — for authorized security research and privacy protection only.
+
+---
+
+## ⭐ Support
+
+If GhostSurf helped you — give it a star on GitHub!
+
+https://github.com/scf13/ghostsurf-v2.2
