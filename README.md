@@ -42,7 +42,7 @@ ghostsurf-v2.2/
 ## Install
 
 ```bash
-git clone https://github.com/scf13/ghostsurf
+git clone https://github.com/scf13/ghostsurf-v2.2
 cd ghostsurf
 chmod +x ghostsurf.sh ghostsurf-gui.sh install.sh lib/*.sh
 sudo bash install.sh
