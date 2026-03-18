@@ -1,0 +1,16 @@
+[Unit]
+Description=GhostSurf Auto-Rotate Tor Circuit
+After=network.target tor.service
+Requires=tor.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/ghostsurf-auto.sh 600
+Restart=on-failure
+RestartSec=10
+User=root
+StandardOutput=append:/var/log/ghostsurf-autorotate.log
+StandardError=append:/var/log/ghostsurf-autorotate.log
+
+[Install]
+WantedBy=multi-user.target

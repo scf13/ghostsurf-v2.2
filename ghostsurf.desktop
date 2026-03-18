@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=2.2
+Name=GhostSurf v2.2
+Comment=Tor Transparent Proxy — Anonymous Routing
+Exec=bash -c 'sudo ghostsurf-gui'
+Icon=security-high
+Terminal=false
+Type=Application
+Categories=Network;Security;
+Keywords=tor;anonymity;privacy;proxy;
+StartupNotify=true
